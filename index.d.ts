@@ -46,9 +46,11 @@ export interface Blocklist {
 }
 
 export interface CensorOptions {
-  /** Merged on top of the shipped starter list unless `replaceBlocklist` is set. */
+  /** Merged on top of the compiled catalog and extras overlay unless `replaceBlocklist` is set. */
   blocklist?: Blocklist | Array<string | BlocklistEntry>;
   replaceBlocklist?: boolean;
+  replaceCatalog?: boolean;
+  catalog?: CatalogModel;
   extraTerms?: Array<string | BlocklistEntry>;
   media?: MediaKind;
   allowlist?: string[];
@@ -59,6 +61,22 @@ export interface Censor {
   checkPair(pair?: { positive?: unknown; negative?: unknown }): PairResult;
   blocklist: Blocklist;
   entries: Array<BlocklistEntry & { tokens: string[] }>;
+  catalogStats: CatalogStats | null;
+}
+
+export interface CatalogStats {
+  tokens: number;
+  patterns: number;
+  nodes: number;
+  edges: number;
+  bytes: number;
+}
+
+export interface CatalogModel {
+  tokenToId: Map<string, number>;
+  patterns: number[];
+  patternLengths: number[];
+  stats: CatalogStats;
 }
 
 export const VERDICTS: {
@@ -70,6 +88,8 @@ export const VERDICTS: {
 export const VERDICT_RANK: Record<Verdict, number>;
 export const DEFAULT_ALLOWLIST: string[];
 export const defaultBlocklist: Blocklist;
+export const catalogMeta: CatalogStats;
+export const shippedCatalog: CatalogModel;
 
 export function check(text: unknown, options?: CensorOptions): CheckResult;
 export function checkPair(

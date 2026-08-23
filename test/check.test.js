@@ -5,7 +5,7 @@ import { inventedBlocklist, inventedCensor } from './helpers.js';
 
 describe('check()', () => {
   it('returns the documented shape on the default path', () => {
-    const result = check('warm analog pads and dusty tape');
+    const result = check('dreamy 80s synthwave, warm analog pads');
     assert.equal(result.verdict, 'allow');
     assert.ok(Array.isArray(result.spans));
     assert.ok(Array.isArray(result.reasons));
@@ -71,7 +71,7 @@ describe('check()', () => {
   });
 
   it('merges a custom blocklist onto the default list', () => {
-    const result = check('a gentle hymn about Zorblin Faye', { blocklist: inventedBlocklist });
+    const result = check('a gentle arrangement about Zorblin Faye', { blocklist: inventedBlocklist });
     assert.equal(result.verdict, 'review');
   });
 

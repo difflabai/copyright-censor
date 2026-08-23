@@ -11,7 +11,8 @@
       "types": "./index.d.ts",
       "import": "./src/index.js"
     },
-    "./blocklist.json": "./data/blocklist.json"
+    "./blocklist.json": "./data/blocklist.json",
+    "./catalog.meta.json": "./data/catalog.meta.json"
   },
   "bin": {
     "copyright-censor": "./bin/copyright-censor.js"
@@ -21,13 +22,16 @@
     "data",
     "bin",
     "demo",
+    "scripts",
     "index.d.ts",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
     "test": "node --test --test-reporter=spec test/*.test.js",
-    "demo": "npx --yes serve -l 4173 ."
+    "demo": "npx --yes serve -l 4173 .",
+    "build-catalog": "python3 scripts/fetch_identifiers.py && node scripts/compile-catalog.js",
+    "compile-catalog": "node scripts/compile-catalog.js"
   },
   "engines": {
     "node": ">=20.10"

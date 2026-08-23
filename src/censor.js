@@ -1,4 +1,5 @@
 import { DEFAULT_ALLOWLIST } from './allowlist.js';
+import { findCatalogSpans } from './automaton.js';
 import {
   asBlocklistObject,
   defaultBlocklist,
@@ -7,6 +8,7 @@ import {
   mediaApplies,
   mergeBlocklists,
 } from './blocklist.js';
+import { shippedCatalog } from './catalog.js';
 import { findHeuristicSpans } from './heuristics.js';
 import { compileAllowSet, compileMatcher, mergeSpans } from './matcher.js';
 import { tokenize } from './tokenize.js';
@@ -49,6 +51,8 @@ function emptyResult() {
  */
 export function createCensor(options = {}) {
   const media = options.media ?? 'all';
+  const useCatalog = !options.replaceBlocklist && !options.replaceCatalog;
+  const catalog = options.catalog ?? (useCatalog ? shippedCatalog : null);
   const base = options.replaceBlocklist ? emptyBlocklist() : defaultBlocklist;
   let merged = options.blocklist
     ? options.replaceBlocklist
@@ -76,9 +80,10 @@ export function createCensor(options = {}) {
     if (!raw.trim()) return emptyResult();
 
     const tokens = tokenize(raw);
+    const catalogSpans = catalog ? findCatalogSpans(catalog, raw, tokens, allowSet) : [];
     const listSpans = matcher.find(raw, tokens, allowSet);
     const heuristicSpans = findHeuristicSpans(raw);
-    const spans = mergeSpans([...listSpans, ...heuristicSpans]);
+    const spans = mergeSpans([...catalogSpans, ...listSpans, ...heuristicSpans]);
     const verdict = spans.reduce((current, span) => worstVerdict(current, span.verdict), VERDICTS.ALLOW);
     return {
       verdict,
@@ -111,6 +116,7 @@ export function createCensor(options = {}) {
     checkPair,
     blocklist: merged,
     entries,
+    catalogStats: catalog?.stats ?? null,
   };
 }
 
@@ -126,8 +132,10 @@ function hasCustomData(options) {
   return Boolean(
     options.blocklist ||
       options.replaceBlocklist ||
+      options.replaceCatalog ||
       options.extraTerms ||
       options.allowlist ||
+      options.catalog ||
       (options.media && options.media !== 'all'),
   );
 }

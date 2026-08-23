@@ -98,10 +98,12 @@
     <main>
       <h1>copyright-censor</h1>
       <p class="lede">
-        Live token spans for music (and image/video) slider prompts.
-        Generic mood/era is allowed. A famous artist alone is review.
+        Live token spans from a compiled on-device identifier catalog
+        (MusicBrainz / Wikidata / franchise names — no lyrics).
+        Generic mood/era is allowed. A cataloged artist alone is review.
         A specific work or “reproduce this” phrasing is block.
       </p>
+      <p class="disclaimer" id="catalog-stats">Loading catalog…</p>
       <p class="disclaimer">
         Conservative filter for product safety — not legal advice. No lyrics are stored.
         Serve this folder from the repo root so ESM + JSON imports resolve
@@ -134,7 +136,10 @@
       <ul id="reasons"></ul>
     </main>
     <script type="module">
-      import { checkPair } from '../src/index.js';
+      import { catalogMeta, checkPair } from '../src/index.js';
+
+      document.querySelector('#catalog-stats').textContent =
+        `${catalogMeta.patterns.toLocaleString()} identifier patterns in the local automaton (${Math.round(catalogMeta.bytes / 1024)} KB unpacked). No network at check() time.`;
 
       const samples = [
         {
@@ -144,12 +149,12 @@
         },
         {
           label: 'review · artist style',
-          positive: 'in the style of Zorblin Faye, late-night city pop',
-          negative: 'lo-fi bedroom tape',
+          positive: 'in the style of Zorblin Faye, analog pads',
+          negative: 'harsh digital clipping',
         },
         {
-          label: 'block · specific work',
-          positive: 'cover of Neon Glass Harbor, note for note',
+          label: 'block · catalog title',
+          positive: 'cover of Whispering Shadows, note for note',
           negative: '',
         },
       ];

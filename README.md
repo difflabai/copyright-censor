@@ -11,10 +11,25 @@ A concept-slider UI can call `check()` on every keystroke and highlight the exac
 | Prompt | Verdict |
 | --- | --- |
 | Generic mood / era / production language (`dreamy 80s synthwave`) | `allow` |
-| Famous artist, no specific work (`in the style of …`) | `review` |
-| Specific work, franchise, trademark, or “reproduce this” phrasing | `block` |
+| Cataloged artist, no specific work (`in the style of …`) | `review` |
+| Specific cataloged work, franchise, trademark, or “reproduce this” phrasing | `block` |
 
 Overall verdict is the worst span: `block` > `review` > `allow`.
+
+## How coverage works
+
+`check()` does **not** scan a 200-row JSON list. At build time, public **identifier** datasets are compiled into a compact token-level Aho-Corasick automaton (`data/catalog.bin.gz`):
+
+- MusicBrainz artist names (CC0 extract)
+- MusicBrainz recording titles (title field only)
+- TV / game / anime / manga **names**
+- Wikidata labels for media franchises, film series, video-game series, fictional universes
+
+Rebuild with `npm run build-catalog`. The default `check()` path is still **synchronous and local** — the shipped gzip is loaded once at import, then every keystroke walks the automaton. No network at `check()` time. An optional rebuild/refresh exists only as a maintainer script.
+
+This is high-recall coverage of **cataloged identifiers**, not a legal oracle and not 100% of every copyrighted sentence ever written. Unknown works, unpublished titles, and generic lyric lines will not match unless a heuristic fires.
+
+Identifiers only. The compile step never reads synopsis, plot, or lyric columns.
 
 ## Install
 
@@ -22,24 +37,17 @@ Overall verdict is the worst span: `block` > `review` > `allow`.
 npm install copyright-censor
 ```
 
-ESM only, browser + Node 20.10+, no runtime dependencies. The default path is **synchronous and local** — no network.
+ESM only, browser + Node 20.10+, no runtime dependencies.
 
 ## API
 
 ```js
-import { check, checkPair, createCensor } from 'copyright-censor';
+import { check, checkPair, createCensor, catalogMeta } from 'copyright-censor';
+
+catalogMeta.patterns; // compiled identifier count
 
 check('dreamy 80s synthwave');
 // { verdict: 'allow', spans: [], reasons: [] }
-
-check('in the style of Zorblin Faye', {
-  extraTerms: [{ term: 'Zorblin Faye', kind: 'artist', verdict: 'review' }],
-});
-// {
-//   verdict: 'review',
-//   spans: [{ start, end, text, verdict, reason, kind }],
-//   reasons: ['artist-style request', 'famous artist']
-// }
 
 checkPair({
   positive: 'warm analog pads',
@@ -59,32 +67,33 @@ Checks both slider fields. Worst verdict wins. Each span also has `field: 'posit
 
 ### `createCensor(options?)`
 
-Compile the matcher once, then call `censor.check()` / `censor.checkPair()` on every keystroke.
+Load the automaton once, then call `censor.check()` / `censor.checkPair()` on every keystroke.
 
 ```js
 const censor = createCensor({
-  blocklist: myJson,          // merged onto the starter list
+  blocklist: myJson,          // extra identifiers merged onto the catalog
   extraTerms: [{ term: 'My Label Artist', kind: 'artist' }],
   media: 'music',             // or 'image' | 'video' | 'all'
   allowlist: ['harbor'],      // never flag these phrases
 });
 ```
 
-Set `replaceBlocklist: true` to ignore the shipped starter list.
+Set `replaceBlocklist: true` / `replaceCatalog: true` to ignore the shipped extras / compiled catalog (useful in tests).
 
 ### Options
 
 | Option | Meaning |
 | --- | --- |
-| `blocklist` | User JSON (grouped object or flat array). Merged with the starter list. |
-| `replaceBlocklist` | Use only the provided list. |
+| `blocklist` | User JSON extras. Merged onto the catalog. |
+| `replaceBlocklist` | Ignore shipped extras **and** the compiled catalog. |
+| `replaceCatalog` | Ignore the compiled catalog only. |
 | `extraTerms` | Extra `{ term, kind, verdict? }` rows. |
-| `media` | Drop entries that do not apply (`music` / `image` / `video` / `all`). |
+| `media` | Drop overlay entries that do not apply. |
 | `allowlist` | Extra mood/era phrases that must never flag. |
 
-## Blocklist JSON
+## Extras JSON
 
-Edit `data/blocklist.json` or pass your own:
+`data/blocklist.json` is an optional overlay, not the engine. Edit it or pass your own:
 
 ```json
 {
@@ -97,29 +106,25 @@ Edit `data/blocklist.json` or pass your own:
 
 - **artists** default to `review`
 - **works / franchises / trademarks** default to `block`
-- `commonWord: true` only flags a capitalized token or a nearby rights cue (`style`, `cover`, `lyrics`, `sounds`, …) so `drama queen` stays clean
-- `aliases` and leading `The` / `A` / `An` are also matched
-- Matching is word-boundary, case-insensitive, accent-folded (`Beyoncé` = `beyonce`)
-
-Import the shipped file as `copyright-censor/blocklist.json`.
+- `commonWord: true` only flags a capitalized token or a nearby rights cue
+- Single-token common English **work** titles are dropped at compile time (`love`, `home`, `stay`) so the slider stays usable
+- Matching is word-boundary, case-insensitive, accent-folded
 
 **Do not add copyrighted lyrics.** Titles, names, and franchise labels only.
 
 ## Heuristics (no stored lyrics)
 
-These fire without a list hit:
+These fire without a catalog hit:
 
 - Reproduction: `cover of`, `lyrics from`, `word for word`, `recreate the song`, `chorus:`, `screenshot from`, …
 - Likeness: `in the style of`, `inspired by`, `voice of`, `official logo`
 - A long quoted passage (8+ words) is treated as a pasted lyric-like excerpt — tests use invented or public-domain strings only
 
-Generic “sounds like rain on tin” is allowed. “sounds like Queen” is review because of the artist term.
-
 ## CLI
 
 ```bash
 npx copyright-censor "dreamy 80s synthwave"
-npx copyright-censor --json "cover of Neon Glass Harbor"
+npx copyright-censor --json "cover of Whispering Shadows"
 npx copyright-censor --positive "warm pads" --negative "no crowd noise"
 npx copyright-censor --blocklist ./my-list.json --media music "…"
 ```
@@ -128,7 +133,7 @@ Exit codes: `0` allow, `1` review, `2` block, `64` usage.
 
 ## Browser demo
 
-From the repo root (ESM + JSON imports need a static server):
+From the repo root (ESM + the gzip catalog need a static server):
 
 ```bash
 npm run demo
@@ -140,6 +145,7 @@ Open [http://localhost:4173/demo/](http://localhost:4173/demo/). Type in the pos
 
 - Not legal advice and not a guarantee you are clear to ship a generation
 - Not a lyrics database, fingerprint, or Content ID replacement
+- Not 100% of every copyrighted sentence — only cataloged identifiers plus intent heuristics
 - Not a tool for finding, storing, or reproducing copyrighted works
 
 If a lawsuit would wreck the product, treat `review` as “do not send to the model until a human looks at it,” and `block` as “do not send.”

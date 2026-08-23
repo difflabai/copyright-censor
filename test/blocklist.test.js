@@ -8,13 +8,12 @@ import {
 } from '../src/index.js';
 
 describe('blocklist', () => {
-  it('ships a grouped starter list without lyric fields', () => {
+  it('ships an extras overlay without lyric fields', () => {
     assert.equal(typeof defaultBlocklist.version, 'number');
-    assert.ok(defaultBlocklist.artists.length > 10);
-    assert.ok(defaultBlocklist.works.length > 10);
     const blob = JSON.stringify(defaultBlocklist).toLowerCase();
     assert.equal(blob.includes('verse 1'), false);
     assert.equal(blob.includes('chorus:'), false);
+    assert.equal(blob.includes('"lyrics"'), false);
   });
 
   it('merges grouped lists and extra entries', () => {
