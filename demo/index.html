@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>copyright-censor demo</title>
+    <style>
+      :root {
+        --bg: #12141a;
+        --panel: #1b1f29;
+        --ink: #e8ebf2;
+        --muted: #8b93a7;
+        --line: #2a3140;
+        --allow: #3dcf8e;
+        --review: #f0c14b;
+        --block: #ff6b6b;
+        --allow-bg: rgba(61, 207, 142, 0.28);
+        --review-bg: rgba(240, 193, 75, 0.32);
+        --block-bg: rgba(255, 107, 107, 0.32);
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 ui-sans-serif, system-ui, sans-serif; }
+      main { max-width: 960px; margin: 0 auto; padding: 28px 20px 64px; }
+      h1 { font-size: 1.4rem; margin: 0 0 6px; }
+      .lede, .disclaimer { color: var(--muted); }
+      .disclaimer { font-size: 0.85rem; margin-top: 8px; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+      @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+      label { display: block; font-weight: 650; margin-bottom: 8px; }
+      .editor {
+        position: relative;
+        min-height: 140px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+      }
+      .backdrop, textarea {
+        font: 15px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        padding: 12px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow: auto;
+      }
+      .backdrop {
+        position: absolute;
+        inset: 0;
+        color: transparent;
+        pointer-events: none;
+        border-radius: 10px;
+      }
+      textarea {
+        position: relative;
+        width: 100%;
+        min-height: 140px;
+        resize: vertical;
+        border: 0;
+        background: transparent;
+        color: var(--ink);
+        caret-color: #fff;
+        outline: none;
+      }
+      mark { color: transparent; border-radius: 3px; }
+      mark.block { background: var(--block-bg); }
+      mark.review { background: var(--review-bg); }
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 18px;
+      }
+      .badge {
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 750;
+        font-size: 0.8rem;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+      }
+      .badge.allow { color: var(--allow); border-color: var(--allow); }
+      .badge.review { color: var(--review); border-color: var(--review); }
+      .badge.block { color: var(--block); border-color: var(--block); }
+      ul { padding-left: 18px; }
+      .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+      button.chip {
+        background: var(--panel);
+        color: var(--ink);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+      button.chip:hover { border-color: #5a657c; }
+      code { font-size: 0.92em; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>copyright-censor</h1>
+      <p class="lede">
+        Live token spans for music (and image/video) slider prompts.
+        Generic mood/era is allowed. A famous artist alone is review.
+        A specific work or “reproduce this” phrasing is block.
+      </p>
+      <p class="disclaimer">
+        Conservative filter for product safety — not legal advice. No lyrics are stored.
+        Serve this folder from the repo root so ESM + JSON imports resolve
+        (<code>npm run demo</code>).
+      </p>
+
+      <div class="chips" id="chips"></div>
+
+      <div class="row">
+        <section>
+          <label for="positive">Positive prompt</label>
+          <div class="editor">
+            <div class="backdrop" id="pos-hi"></div>
+            <textarea id="positive" spellcheck="false">dreamy 80s synthwave, warm analog pads, soft tape hiss</textarea>
+          </div>
+        </section>
+        <section>
+          <label for="negative">Negative prompt</label>
+          <div class="editor">
+            <div class="backdrop" id="neg-hi"></div>
+            <textarea id="negative" spellcheck="false">harsh digital clipping, crowd noise</textarea>
+          </div>
+        </section>
+      </div>
+
+      <div class="status">
+        <span class="badge allow" id="badge">allow</span>
+        <span class="lede" id="summary">No flagged spans.</span>
+      </div>
+      <ul id="reasons"></ul>
+    </main>
+    <script type="module">
+      import { checkPair } from '../src/index.js';
+
+      const samples = [
+        {
+          label: 'allow · mood/era',
+          positive: 'dreamy 80s synthwave, warm analog pads, soft tape hiss',
+          negative: 'harsh digital clipping, crowd noise',
+        },
+        {
+          label: 'review · artist style',
+          positive: 'in the style of Zorblin Faye, late-night city pop',
+          negative: 'lo-fi bedroom tape',
+        },
+        {
+          label: 'block · specific work',
+          positive: 'cover of Neon Glass Harbor, note for note',
+          negative: '',
+        },
+      ];
+
+      const positive = document.querySelector('#positive');
+      const negative = document.querySelector('#negative');
+      const posHi = document.querySelector('#pos-hi');
+      const negHi = document.querySelector('#neg-hi');
+      const badge = document.querySelector('#badge');
+      const summary = document.querySelector('#summary');
+      const reasons = document.querySelector('#reasons');
+      const chips = document.querySelector('#chips');
+
+      const extraTerms = [
+        { term: 'Zorblin Faye', kind: 'artist', verdict: 'review', reason: 'famous artist' },
+        { term: 'Neon Glass Harbor', kind: 'work', verdict: 'block', reason: 'specific protected work' },
+      ];
+
+      function escapeHtml(value) {
+        return value
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;');
+      }
+
+      function paint(text, spans) {
+        const ordered = [...spans].sort((a, b) => a.start - b.start || b.end - a.end);
+        let html = '';
+        let cursor = 0;
+        for (const span of ordered) {
+          if (span.start < cursor) continue;
+          html += escapeHtml(text.slice(cursor, span.start));
+          html += `<mark class="${span.verdict}" title="${escapeHtml(span.reason)}">${escapeHtml(
+            text.slice(span.start, span.end),
+          )}</mark>`;
+          cursor = span.end;
+        }
+        html += escapeHtml(text.slice(cursor));
+        return html + '\n';
+      }
+
+      function syncScroll(from, to) {
+        to.scrollTop = from.scrollTop;
+        to.scrollLeft = from.scrollLeft;
+      }
+
+      function render() {
+        const result = checkPair(
+          { positive: positive.value, negative: negative.value },
+          { extraTerms },
+        );
+        posHi.innerHTML = paint(positive.value, result.positive.spans);
+        negHi.innerHTML = paint(negative.value, result.negative.spans);
+        badge.textContent = result.verdict;
+        badge.className = `badge ${result.verdict}`;
+        summary.textContent = result.spans.length
+          ? `${result.spans.length} flagged span${result.spans.length === 1 ? '' : 's'}`
+          : 'No flagged spans.';
+        reasons.innerHTML = result.spans
+          .map(
+            (span) =>
+              `<li><code>${span.field}</code> [${span.start}:${span.end}] “${escapeHtml(
+                span.text,
+              )}” — ${escapeHtml(span.reason)}</li>`,
+          )
+          .join('');
+      }
+
+      for (const sample of samples) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'chip';
+        button.textContent = sample.label;
+        button.addEventListener('click', () => {
+          positive.value = sample.positive;
+          negative.value = sample.negative;
+          render();
+        });
+        chips.append(button);
+      }
+
+      for (const area of [positive, negative]) {
+        area.addEventListener('input', render);
+        area.addEventListener('scroll', () => {
+          syncScroll(positive, posHi);
+          syncScroll(negative, negHi);
+        });
+      }
+
+      render();
+    </script>
+  </body>
+</html>
