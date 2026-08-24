@@ -1,0 +1,59 @@
+{
+  "name": "copyright-censor",
+  "version": "0.1.0",
+  "description": "Realtime conservative copyright/trademark prompt censor with token-level spans. Not legal advice.",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./src/index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./blocklist.json": "./data/blocklist.json",
+    "./catalog.meta.json": "./data/catalog.meta.json"
+  },
+  "bin": {
+    "copyright-censor": "./bin/copyright-censor.js"
+  },
+  "files": [
+    "src",
+    "data",
+    "bin",
+    "demo",
+    "scripts",
+    "index.d.ts",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node --test --test-reporter=spec test/*.test.js",
+    "demo": "npx --yes serve -l 4173 .",
+    "build-catalog": "python3 scripts/fetch_identifiers.py && node scripts/compile-catalog.js",
+    "compile-catalog": "node scripts/compile-catalog.js"
+  },
+  "engines": {
+    "node": ">=20.10"
+  },
+  "license": "MIT",
+  "author": "mikkel",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikkel/copyright-censor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mikkel/copyright-censor/issues"
+  },
+  "homepage": "https://github.com/mikkel/copyright-censor#readme",
+  "keywords": [
+    "copyright",
+    "trademark",
+    "censor",
+    "prompt",
+    "filter",
+    "music",
+    "safety",
+    "blocklist"
+  ]
+}

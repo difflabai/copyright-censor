@@ -1,0 +1,4 @@
+{
+  "artists": [{ "term": "Zorblin Faye", "verdict": "review", "reason": "famous artist" }],
+  "works": [{ "term": "Neon Glass Harbor", "verdict": "block", "reason": "specific protected work" }]
+}
