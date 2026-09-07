@@ -51,4 +51,78 @@ describe('blocklist', () => {
     });
     assert.equal(censor.check('dreamy pads').verdict, 'allow');
   });
+
+  it('matches new overlay identifiers from invented prompts only', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const cases = [
+      ['a Marvin Gaye groove on cheap speakers', 'review'],
+      ['Bonnie Tyler vocal air over pads', 'review'],
+      ['Goo Goo Dolls arrangement with tape hiss', 'review'],
+      ['James Brown horns and a tight snare', 'review'],
+      ['Bon Jovi gang vocals on analog tape', 'review'],
+      ['Jim Steinman piano and stacked choir', 'review'],
+      ['Mark Ronson brass stabs, dusty cassette', 'review'],
+      ['Earth Wind & Fire horns, late night mix', 'review'],
+      ['Ella Langley fiddle and dry vocal', 'review'],
+      ['Morgan Wallen bar-room guitar', 'review'],
+      ['Olivia Dean soft tape vocal', 'review'],
+      ['Tame Impala phaser and muted drums', 'review'],
+      ['JENNIE hook over warm pads', 'review'],
+      ['KATSEYE stacked chorus, analog bus', 'review'],
+      ['Stella Lefty pedal-steel demo', 'review'],
+      ['PARTYNEXTDOOR late-night keys', 'review'],
+      ['KAROL G perreo bounce on cheap speakers', 'review'],
+      ['The Kinks jangly guitar take', 'review'],
+      ['Dio operatic vocal over analog tape', 'review'],
+      ['make it sound like Choosin Texas', 'block'],
+      ['I Knew It I Knew You demo take', 'block'],
+      ['Been By Now arrangement, soft tape', 'block'],
+      ['Hate That I Made You Love Me sketch', 'block'],
+      ['I Cannot wait — I Can\'t Love You Anymore', 'block'],
+      ['Man I Need demo with dry vocal', 'block'],
+      ['So Easy To Fall in Love sketch', 'block'],
+      ['Be Her arrangement on analog tape', 'block'],
+      ['Risk It All guitar take', 'block'],
+      ['I Just Might piano sketch', 'block'],
+      ['drop dead arrangement, tape hiss', 'block'],
+      ['stupid song demo take', 'block'],
+      ['Midnight Sun pads and soft choir', 'block'],
+      ['Hootie Frutti bounce sketch', 'block'],
+      ['Janice STFU demo take', 'block'],
+      ['Babydoll arrangement on cheap speakers', 'block'],
+      ['McArthur collab sketch', 'block'],
+      ['Ain\'t No Mountain High Enough sketch', 'block'],
+      ['All I Want for Christmas Is You sketch', 'block'],
+      ['Eye of the Tiger guitar take', 'block'],
+      ['Here Comes Santa Claus sketch', 'block'],
+      ['Living On a Prayer gang vocal', 'block'],
+      ['Paper Rings guitar take', 'block'],
+      ['Great Balls of Fire piano take', 'block'],
+      ['Ramblin\' Man guitar take', 'block'],
+      ['Cruel Summer synth stab', 'block'],
+      ['Twist and Shout gang vocal', 'block'],
+      ['California Gurls bounce sketch', 'block'],
+      ['We Belong Together vocal air', 'block'],
+      ['Scars to Your Beautiful sketch', 'block'],
+      ['Redbone bass and tape hiss', 'block'],
+      ['Total Eclipse of the Heart choir', 'block'],
+      ['I Feel Good horn stab', 'block'],
+      ['the song Iris on analog tape', 'block'],
+      ['Lola jangly guitar take', 'block'],
+      ['Holy Diver operatic vocal', 'block'],
+      ['Got My Mind Set On You sketch', 'block'],
+      ['Lucasfilm title card, warm grain', 'block'],
+      ['Hanna-Barbera title sting', 'block'],
+      ['Cartoon Network bumper sting', 'block'],
+      ['Minions title sting', 'block'],
+      ['Shrek swamp title sting', 'block'],
+      ['Homer Simpson couch sting', 'block'],
+      ['Han Solo cockpit sting', 'block'],
+    ];
+    for (const [prompt, verdict] of cases) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
+    }
+  });
 });
+
