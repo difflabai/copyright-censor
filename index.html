@@ -157,7 +157,7 @@
 
     try {
       const t0 = performance.now();
-      const { catalogMeta, checkPair } = await import('../src/index.js');
+      const { catalogMeta, checkPair } = await import('./src/index.js');
       const loadMs = performance.now() - t0;
 
       document.querySelector('#catalog-stats').textContent =
