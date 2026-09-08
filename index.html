@@ -89,7 +89,7 @@
     <div class="brand">Differential AI Lab</div>
     <header>
       <h1>copyright-censor</h1>
-      <div class="meta"><a href="https://github.com/difflabai/copyright-censor">GitHub</a> · MIT · not legal advice</div>
+      <div class="meta"><a href="https://github.com/difflabai/copyright-censor">GitHub</a> · <a href="https://difflab.ai">difflab.ai</a> · MIT · not legal advice</div>
     </header>
     <p class="lede">
       Live token spans from a compiled on-device identifier catalog
@@ -270,6 +270,8 @@
           ? `${result.spans.length} flagged span${result.spans.length === 1 ? '' : 's'}`
           : 'No flagged spans.';
         timing.textContent = `${ms.toFixed(2)} ms`;
+        document.querySelector('#pos-ms').textContent = `${ms.toFixed(2)} ms`;
+        document.querySelector('#neg-ms').textContent = '';
         document.querySelector('#stat-ms').textContent = `${ms.toFixed(2)} ms`;
         document.querySelector('#stat-spans').textContent = String(result.spans.length);
         reasons.innerHTML = result.spans
@@ -314,6 +316,13 @@
       positive.value = samples[0].positive;
       negative.value = samples[0].negative;
       chips.querySelector('button')?.classList.add('active');
+      document.addEventListener('keydown', (ev) => {
+        if (ev.target.matches('textarea, input')) return;
+        const n = Number(ev.key);
+        if (n >= 1 && n <= samples.length) {
+          chips.querySelectorAll('button')[n - 1]?.click();
+        }
+      });
       boot.hidden = true;
       app.hidden = false;
       render();
