@@ -6,6 +6,18 @@ The library is a **conservative filter**: high recall, false positives are accep
 
 A concept-slider UI can call `check()` on every keystroke and highlight the exact words that look risky.
 
+## Live demo
+
+GitHub Pages: [difflabai.github.io/copyright-censor](https://difflabai.github.io/copyright-censor/)
+
+Local (from repo root so ESM + the gzip catalog resolve):
+
+```bash
+npm run demo
+```
+
+Open [http://localhost:4173/](http://localhost:4173/) or [http://localhost:4173/demo/](http://localhost:4173/demo/). Sample chips cover allow / review / block (chart titles, franchises, reproduce-this heuristics).
+
 ## Policy
 
 | Prompt | Verdict |
@@ -130,16 +142,6 @@ npx copyright-censor --blocklist ./my-list.json --media music "…"
 ```
 
 Exit codes: `0` allow, `1` review, `2` block, `64` usage.
-
-## Browser demo
-
-From the repo root (ESM + the gzip catalog need a static server):
-
-```bash
-npm run demo
-```
-
-Open [http://localhost:4173/demo/](http://localhost:4173/demo/). Type in the positive/negative fields; flagged words highlight as you type.
 
 ## What this is not
 
