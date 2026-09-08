@@ -1,6 +1,6 @@
 {
   "name": "copyright-censor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Realtime conservative copyright/trademark prompt censor with token-level spans. Not legal advice.",
   "type": "module",
   "sideEffects": false,
@@ -37,15 +37,15 @@
     "node": ">=20.10"
   },
   "license": "MIT",
-  "author": "mikkel",
+  "author": "Differential AI Lab",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mikkel/copyright-censor.git"
+    "url": "git+https://github.com/difflabai/copyright-censor.git"
   },
   "bugs": {
-    "url": "https://github.com/mikkel/copyright-censor/issues"
+    "url": "https://github.com/difflabai/copyright-censor/issues"
   },
-  "homepage": "https://github.com/mikkel/copyright-censor#readme",
+  "homepage": "https://difflabai.github.io/copyright-censor/",
   "keywords": [
     "copyright",
     "trademark",
@@ -54,6 +54,7 @@
     "filter",
     "music",
     "safety",
-    "blocklist"
+    "blocklist",
+    "difflab"
   ]
 }
