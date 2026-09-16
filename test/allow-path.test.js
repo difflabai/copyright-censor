@@ -90,6 +90,12 @@ describe('allow-path / innocent usage', () => {
     'steamboat whistle foley with willie on harmonica',
     'a direct cinema cut, no captions',
     'forty hours of overtime, tired vocal take',
+    'a thor cape prop on the workbench',
+    'coco powder on the workbench, baking foley',
+    'halo light rig, soft studio glow',
+    'turned inside out, room tone',
+    'toy storybook hour with kids, warm room',
+    'the last of us left the room, quiet vocal',
     'boston cream donut in the green room',
     'boston terrier bark foley',
     'dracula parrot in the aviary ambience',
@@ -137,6 +143,9 @@ describe('allow-path / innocent usage', () => {
     'boss tone stack, crunch channel',
     'second switchback trail ambience',
     'how to lose the hum in the amp',
+    'a moaning wind outside, night air',
+    'spotty wifi foley, lo-fi bed',
+    'a hobo campfire scene, warm grain',
     'sumo drums foley, taiko hit',
     'audio foley bed, room tone',
     'day by day field recording, slow build',
@@ -147,6 +156,13 @@ describe('allow-path / innocent usage', () => {
     'x box mic crate, roadie foley',
     'ps 5 mic positions, drum overheads',
     'street-pop mural on the brick wall',
+  ];
+
+  // Overlaps that stay allow on the extras overlay but trip pre-existing
+  // single-word entries in the shipped catalog (e.g. "One Piece", "God",
+  // "Dawn Chorus") — asserted overlay-only by design.
+  const overlayOnlyPrompts = [
+    'god of warbler dawn chorus, field recording',
   ];
 
   it('keeps genre / vibe / production prompts allow on the extras overlay', () => {
@@ -170,6 +186,15 @@ describe('allow-path / innocent usage', () => {
   it('does not trip on near-miss substrings of new artist/work tokens', () => {
     for (const prompt of nearMissPrompts) {
       assertAllow(overlay, prompt, 'overlay near-miss');
+    }
+  });
+
+  it('keeps one-piece-of-tape style overlaps allow on the overlay path', () => {
+    // The shipped catalog already blocks the bare "One Piece" bigram; the
+    // extras overlay (this file's scope) must not add its own trip here.
+    assertAllow(overlay, 'one piece of tape on the desk', 'overlay one-piece');
+    for (const prompt of overlayOnlyPrompts) {
+      assertAllow(overlay, prompt, 'overlay-only near-miss');
     }
   });
 
