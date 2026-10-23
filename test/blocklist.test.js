@@ -5,6 +5,7 @@ import {
   defaultBlocklist,
   flattenBlocklist,
   mergeBlocklists,
+  shippedCatalog,
 } from '../src/index.js';
 
 describe('blocklist', () => {
@@ -164,7 +165,7 @@ describe('blocklist', () => {
       ['the song Boston on analog tape', 'block'],
       ['Boston song sketch, Stella Lefty vocal', 'block'],
       ['the song Dracula on analog tape', 'block'],
-      ['Something to Lose piano sketch', 'block'],
+      ['Stella Lefty Something to Lose piano sketch', 'block'],
       ['the song 9 to 5 on piano', 'block'],
       ['Steamboat Willie title card, warm grain', 'block'],
       ['Nintendo Switch bumper sting', 'block'],
@@ -1756,5 +1757,553 @@ describe('blocklist', () => {
       assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
     }
   });
-});
 
+  it('matches Pass 53 music-video/video-prompt identifiers from invented prompts only', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const cases = [
+      ['Blumhouse logo sting, warm grain', 'block'],
+      ['signed to Blumhouse for the new single', 'block'],
+      ['Lionsgate logo sting, warm grain', 'block'],
+      ['signed to Lionsgate for the new single', 'block'],
+      ['A24 Films logo sting, warm grain', 'block'],
+      ['signed to A24 Films for the new single', 'block'],
+      ['MGM Studios logo sting, warm grain', 'block'],
+      ['signed to MGM Studios for the new single', 'block'],
+      ['Hayao Miyazaki logo sting, warm grain', 'block'],
+      ['signed to Hayao Miyazaki for the new single', 'block'],
+      ['Vevo logo sting, warm grain', 'block'],
+      ['signed to Vevo for the new single', 'block'],
+      ['Vevo DSCVR logo sting, warm grain', 'block'],
+      ['signed to Vevo DSCVR for the new single', 'block'],
+      ['HGTV logo sting, warm grain', 'block'],
+      ['signed to HGTV for the new single', 'block'],
+      ['MAPPA logo sting, warm grain', 'block'],
+      ['signed to MAPPA for the new single', 'block'],
+      ['Eon Productions logo sting, warm grain', 'block'],
+      ['signed to Eon Productions for the new single', 'block'],
+    ];
+    for (const [prompt, verdict] of cases) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
+    }
+  });
+
+  it('scopes Pass 53 music-video/video-prompt identifiers to image/video (Pass 53 Part A)', () => {
+    const music = createCensor({ replaceCatalog: true, media: 'music' });
+    const image = createCensor({ replaceCatalog: true, media: 'image' });
+    const video = createCensor({ replaceCatalog: true, media: 'video' });
+    const terms = [
+      'Blumhouse',
+      'Lionsgate',
+      'A24 Films',
+      'MGM Studios',
+      'Hayao Miyazaki',
+      'Vevo',
+      'Vevo DSCVR',
+      'HGTV',
+      'MAPPA',
+      'Eon Productions',
+    ];
+    for (const term of terms) {
+      const prompt = `signed to ${term} for the new single`;
+      assert.equal(music.check(prompt).verdict, 'allow', `music ${JSON.stringify(prompt)}`);
+      assert.equal(image.check(prompt).verdict, 'block', `image ${JSON.stringify(prompt)}`);
+      assert.equal(video.check(prompt).verdict, 'block', `video ${JSON.stringify(prompt)}`);
+    }
+  });
+
+  it('matches podcast-audiobook identifiers from invented prompts only', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const cases = [
+      ['Wondery intro sting, warm room tone', 'block'],
+      ['pitched to Wondery yesterday', 'block'],
+      ['Earwolf intro sting, warm room tone', 'block'],
+      ['pitched to Earwolf yesterday', 'block'],
+      ['Pushkin Industries intro sting, warm room tone', 'block'],
+      ['pitched to Pushkin Industries yesterday', 'block'],
+      ['Parcast intro sting, warm room tone', 'block'],
+      ['pitched to Parcast yesterday', 'block'],
+      ['Stitcher intro sting, warm room tone', 'block'],
+      ['pitched to Stitcher yesterday', 'block'],
+      ['Armchair Expert intro sting, warm room tone', 'block'],
+      ['pitched to Armchair Expert yesterday', 'block'],
+      ['SmartLess intro sting, warm room tone', 'block'],
+      ['pitched to SmartLess yesterday', 'block'],
+      ['Radiolab intro sting, warm room tone', 'block'],
+      ['pitched to Radiolab yesterday', 'block'],
+      ['HarperAudio intro sting, warm room tone', 'block'],
+      ['Harper Audio intro sting, warm room tone', 'block'],
+      ['pitched to HarperAudio yesterday', 'block'],
+      ['Audible Studios intro sting, warm room tone', 'block'],
+      ['pitched to Audible Studios yesterday', 'block'],
+    ];
+    for (const [prompt, verdict] of cases) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
+    }
+  });
+
+  it('matches short-form-social overlay identifiers from invented prompts only', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const cases = [
+      ['Sidemen title sting, warm grain', 'block'],
+      ['watched Sidemen yesterday', 'block'],
+      ["Charli D'Amelio title sting, warm grain", 'block'],
+      ['watched Charli Damelio yesterday', 'block'],
+      ['Wipe It Down title sting, warm grain', 'block'],
+      ['filmed Wipe It Down yesterday', 'block'],
+      ['Grimace title sting, warm grain', 'block'],
+      ['saw Grimace yesterday', 'block'],
+      ['Artlist title sting, warm grain', 'block'],
+      ['licensed with Artlist yesterday', 'block'],
+      ['Uppbeat title sting, warm grain', 'block'],
+      ['licensed with Uppbeat yesterday', 'block'],
+      ['Pond5 product shot, studio light', 'block'],
+      ['licensed on Pond5 yesterday', 'block'],
+      ['Shorts Fund product shot, studio light', 'block'],
+      ['paid via Shorts Fund yesterday', 'block'],
+      ['Video Reply product shot, studio light', 'block'],
+      ['replied with Video Reply yesterday', 'block'],
+    ];
+    for (const [prompt, verdict] of cases) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
+    }
+  });
+
+  it('proves short-form-social identifiers are true gaps via catalog-only isolation', () => {
+    const catalogOnly = createCensor({ replaceBlocklist: true, catalog: shippedCatalog });
+    const overlayOnly = createCensor({ replaceCatalog: true });
+    const candidates = [
+      'Sidemen',
+      "Charli D'Amelio",
+      'Wipe It Down',
+      'Grimace',
+      'Artlist',
+      'Uppbeat',
+      'Pond5',
+      'Shorts Fund',
+      'Video Reply',
+    ];
+    for (const term of candidates) {
+      const prompt = `warm pads ${term} dusty cassette`;
+      const catalogResult = catalogOnly.check(prompt);
+      assert.equal(
+        catalogResult.verdict,
+        'allow',
+        `catalog-only ${JSON.stringify(prompt)} => ${catalogResult.verdict} (expected allow for a true gap)`,
+      );
+      const overlayResult = overlayOnly.check(prompt);
+      assert.notEqual(
+        overlayResult.verdict,
+        'allow',
+        `overlay ${JSON.stringify(prompt)} unexpectedly allows after adding the identifier`,
+      );
+    }
+  });
+
+  it('scopes short-form platform/footage marks to image/video (short-form Part A)', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const cases = [
+      ['Pond5 product shot, studio light', 'block'],
+      ['Shorts Fund product shot, studio light', 'block'],
+      ['Video Reply product shot, studio light', 'block'],
+    ];
+    for (const [prompt, verdict] of cases) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
+    }
+  });
+
+  it('documents Part A audit: leftover visual marks are catalog hits, not overlay gaps', () => {
+    const catalogOnly = createCensor({ replaceBlocklist: true, catalog: shippedCatalog });
+    const skipped = [
+      'Netflix',
+      'Paramount',
+      'Sony Pictures',
+      'Universal Pictures',
+      'Warner Bros',
+      'DreamWorks',
+      'Coca-Cola',
+      'Pepsi',
+      'Starbucks',
+      'Adidas',
+      'Gucci',
+    ];
+    for (const term of skipped) {
+      const result = catalogOnly.check(`warm pads ${term} dusty cassette`);
+      assert.notEqual(
+        result.verdict,
+        'allow',
+        `catalog-only ${JSON.stringify(term)} unexpectedly allows; re-audit overlay scoping`,
+      );
+    }
+  });
+
+  it('matches Pass 53 cover-art identifiers from invented prompts only', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const cases = [
+      ['4AD logo sting, warm grain', 'block'],
+      ['signed to 4AD for the new single', 'block'],
+      ['ECM Records logo sting, warm grain', 'block'],
+      ['signed to ECM Records for the new single', 'block'],
+      ['Deutsche Grammophon logo sting, warm grain', 'block'],
+      ['signed to Deutsche Grammophon for the new single', 'block'],
+      ['Kranky logo sting, warm grain', 'block'],
+      ['signed to Kranky for the new single', 'block'],
+      ['RIAA logo sting, warm grain', 'block'],
+      ['signed to RIAA for the new single', 'block'],
+      ['Gildan logo sting, warm grain', 'block'],
+      ['signed to Gildan for the new single', 'block'],
+      ['Hanes logo sting, warm grain', 'block'],
+      ['signed to Hanes for the new single', 'block'],
+      ['Coachella logo sting, warm grain', 'block'],
+      ['signed to Coachella for the new single', 'block'],
+    ];
+    for (const [prompt, verdict] of cases) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
+    }
+  });
+
+  it('scopes cover-art packaging/merch marks to image/video (Pass 53 Part A)', () => {
+    const music = createCensor({ replaceCatalog: true, media: 'music' });
+    const image = createCensor({ replaceCatalog: true, media: 'image' });
+    // Coachella stays all-media per song-prompt overlay (#57); its duplicate
+    // image/video-scoped entry from cover-art (#58) was dropped at merge.
+    const scoped = ['RIAA', 'Gildan', 'Hanes'];
+    for (const term of scoped) {
+      const prompt = `signed to ${term} for the new single`;
+      assert.equal(music.check(prompt).verdict, 'allow', `music-path ${JSON.stringify(prompt)}`);
+      assert.equal(image.check(prompt).verdict, 'block', `image-path ${JSON.stringify(prompt)}`);
+    }
+    const labels = ['4AD', 'ECM Records', 'Deutsche Grammophon', 'Kranky'];
+    for (const term of labels) {
+      const prompt = `signed to ${term} for the new single`;
+      assert.equal(music.check(prompt).verdict, 'block', `music-path label ${JSON.stringify(prompt)}`);
+    }
+  });
+
+  it('matches weekly-ahead 2026-09-21 identifiers from invented prompts only', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const cases = [
+      ['Kim Petras vocal air over pads', 'review'],
+      ['Sam Smith vocal air over pads', 'review'],
+      ['Joan Osborne vocal air over pads', 'review'],
+      ['Hanson arrangement with tape hiss', 'review'],
+      ['Bubba Sparxxx bounce on cheap speakers', 'review'],
+      ['Ja Rule hook over warm pads', 'review'],
+      ['Panic! at the Disco arrangement with tape hiss', 'review'],
+      ['Panic at the Disco arrangement with tape hiss', 'review'],
+      ['Selena Quintanilla vocal air over pads', 'review'],
+      ['Selena Quintanilla-Perez vocal air over pads', 'review'],
+      ['Adela hook over warm pads', 'review'],
+      ['Temper City hook over warm pads', 'review'],
+      ['Alyssa Grace hook over warm pads', 'review'],
+      ['Sienna Spiro hook over warm pads', 'review'],
+      ['Audrey Hobert hook over warm pads', 'review'],
+      ['Mack Geiger hook over warm pads', 'review'],
+      ['Hudson Westbrook hook over warm pads', 'review'],
+      ['Babychiefdoit hook over warm pads', 'review'],
+      ['Belly Gang Kushington hook over warm pads', 'review'],
+      ['Belly Gang hook over warm pads', 'review'],
+      ['Dexter and The Moonrocks hook over warm pads', 'review'],
+      ['Dexter & The Moonrocks hook over warm pads', 'review'],
+      ['Lainey Wilson hook over warm pads', 'review'],
+      ['F3Miii hook over warm pads', 'review'],
+      ['Ashe hook over warm pads', 'review'],
+      ['Lalisa hook over warm pads', 'review'],
+      ['BLACKPINK LISA hook over warm pads', 'review'],
+      ['Lisa BLACKPINK hook over warm pads', 'review'],
+      ['make it sound like Unholy', 'block'],
+      ['MMMBop arrangement with tape hiss', 'block'],
+      ['Always On Time sketch on analog tape', 'block'],
+      ['Ms. New Booty bounce sketch', 'block'],
+      ['Ms New Booty bounce sketch', 'block'],
+      ['Miss New Booty bounce sketch', 'block'],
+      ['the song One of Us on analog tape', 'block'],
+      ['Bass Persuades sketch on analog tape', 'block'],
+      ["Ain't In LA sketch on analog tape", 'block'],
+      ['Aint In LA sketch on analog tape', 'block'],
+      ['Take Me Back (Leave Me There) sketch on analog tape', 'block'],
+      ['Bloodstream sketch on analog tape', 'block'],
+      ['the song Self Aware on analog tape', 'block'],
+      ['Phone, Keys, Wallet sketch on analog tape', 'block'],
+      ['Phone Keys Wallet sketch on analog tape', 'block'],
+      ['Hit The Wall guitar take', 'block'],
+      ['Great Expectation piano sketch', 'block'],
+      ['Chevy Silverado guitar take', 'block'],
+      ['Another Drink bar-room sketch', 'block'],
+      ['Wtf Goin bounce sketch', 'block'],
+      ['WTF Goin bounce sketch', 'block'],
+      ['Country And She Knows It sketch on analog tape', 'block'],
+      ['Sawadika bounce sketch', 'block'],
+      ['Stop The Wedding sketch on analog tape', 'block'],
+      ['Q Productions logo sting, warm grain', 'block'],
+      ['signed to Q Productions for the new single', 'block'],
+    ];
+    for (const [prompt, verdict] of cases) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
+    }
+  });
+
+  it('matches weekly-ahead 2026-09-28 identifiers from invented prompts only', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const cases = [
+      ['Jhené Aiko hook over warm pads', 'review'],
+      ['Jhene Aiko hook over warm pads', 'review'],
+      ['Ab-Soul hook over warm pads', 'review'],
+      ['Ab Soul hook over warm pads', 'review'],
+      ['Tyga hook over warm pads', 'review'],
+      ['Comehelpglo hook over warm pads', 'review'],
+      ['Elevation Rhythm hook over warm pads', 'review'],
+      ['Cody Johnson hook over warm pads', 'review'],
+      ['Teddy Swims hook over warm pads', 'review'],
+      ['Cardi B hook over warm pads', 'review'],
+      ['Gracie Abrams hook over warm pads', 'review'],
+      ['21 Savage hook over warm pads', 'review'],
+      ['Riley Green hook over warm pads', 'review'],
+      ['Bailey Zimmerman hook over warm pads', 'review'],
+      ['Marshmello hook over warm pads', 'review'],
+      ['Kelsea Ballerini hook over warm pads', 'review'],
+      ['Luke Bryan hook over warm pads', 'review'],
+      ['Jelly Roll hook over warm pads', 'review'],
+      ['Elevation Worship hook over warm pads', 'review'],
+      ['Chandler Moore hook over warm pads', 'review'],
+      ['Julia Wolf hook over warm pads', 'review'],
+      ['John Mayer hook over warm pads', 'review'],
+      ['John Morgan hook over warm pads', 'review'],
+      ['Zach Top hook over warm pads', 'review'],
+      ['Kacey Musgraves hook over warm pads', 'review'],
+      ['Lauren Alaina hook over warm pads', 'review'],
+      ['Chase Matthew hook over warm pads', 'review'],
+      ['Blake Whiten hook over warm pads', 'review'],
+      ['Dan + Shay hook over warm pads', 'review'],
+      ['Dan and Shay hook over warm pads', 'review'],
+      ['Dan & Shay hook over warm pads', 'review'],
+      ['Hardy hook over warm pads', 'review'],
+      ['Eric Church hook over warm pads', 'review'],
+      ['Tim McGraw hook over warm pads', 'review'],
+      ['Zach John King hook over warm pads', 'review'],
+      ['Corey Kent hook over warm pads', 'review'],
+      ['Robert Smith hook over warm pads', 'review'],
+      ['the song Westside Whimsy on analog tape', 'block'],
+      ['the song So Good on analog tape', 'block'],
+      ['the song He Belongs on analog tape', 'block'],
+      ['the song Ghost on analog tape', 'block'],
+      ['the song Ceiling on analog tape', 'block'],
+      ['the song Love Bomb on analog tape', 'block'],
+      ['the song Nothing Nice To Say on analog tape', 'block'],
+      ['the song Like, Whatever on analog tape', 'block'],
+      ['the song Like Whatever on analog tape', 'block'],
+      ['the song Wild Cats on analog tape', 'block'],
+      ['the song Wild Cat on analog tape', 'block'],
+      ['the song Onsra on analog tape', 'block'],
+      ['the song Washed on analog tape', 'block'],
+      ['the song Mr. Know It All on analog tape', 'block'],
+      ['the song Mr Know It All on analog tape', 'block'],
+      ['the song Rethink Some Things on analog tape', 'block'],
+      ['the song Ah Ha on analog tape', 'block'],
+      ['the song Ahha on analog tape', 'block'],
+      ["the song Freakin' Out on analog tape", 'block'],
+      ['the song Freaking Out on analog tape', 'block'],
+      ['the song Rein Me In on analog tape', 'block'],
+      ["the song My Body Isn't Ready on analog tape", 'block'],
+      ['the song My Body Isnt Ready on analog tape', 'block'],
+      ['the song Think As You Drunk on analog tape', 'block'],
+      ['the song Mexico Honey on analog tape', 'block'],
+      ['the song Kid Myself on analog tape', 'block'],
+      ['the song Ghetto Love Story on analog tape', 'block'],
+      ['the song South Of Sanity on analog tape', 'block'],
+      ['the song All My Exes on analog tape', 'block'],
+      ['the song Maggots For Brains on analog tape', 'block'],
+      ['the song Painted You Pretty on analog tape', 'block'],
+      ["the song Get To Drinkin' on analog tape", 'block'],
+      ['the song Get To Drinking on analog tape', 'block'],
+      ["the song God I'm Just Grateful on analog tape", 'block'],
+      ['the song God Im Just Grateful on analog tape', 'block'],
+      ['the song California Girls on analog tape', 'block'],
+      ['the song Some Of Your Love on analog tape', 'block'],
+      ["the song What's Wrong With Me on analog tape", 'block'],
+      ['the song Whats Wrong With Me on analog tape', 'block'],
+      ['the song Nicole Kidman on analog tape', 'block'],
+      ['the song Cowgirl on analog tape', 'block'],
+      ['the song Honeybee on analog tape', 'block'],
+      ['the song In My Room on analog tape', 'block'],
+      ['the song Ahi on analog tape', 'block'],
+      ['Yoshi character render, warm grain', 'block'],
+      ['Bowser character render, warm grain', 'block'],
+      ['Princess Peach character render, warm grain', 'block'],
+      ['Princess Toadstool character render, warm grain', 'block'],
+      ['a Toad character render, warm grain', 'block'],
+      ['Mario Kart gameplay still, warm grain', 'block'],
+      ['Super Mushroom item render, warm grain', 'block'],
+    ];
+    for (const [prompt, verdict] of cases) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
+    }
+  });
+
+  it('matches weekly-ahead 2026-10-03 identifiers from invented prompts only', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const cases = [
+      ['beabadoobee hook over warm pads', 'review'],
+      ['Beabadoobee hook over warm pads', 'review'],
+      ['Miley hook over warm pads', 'review'],
+      ['Miley Cyrus hook over warm pads', 'review'],
+      ['play RHYNO on analog tape', 'block'],
+      ['play rhyno on analog tape', 'block'],
+      ['play Macacoa 2000 on analog tape', 'block'],
+      ['play Shabang on analog tape', 'block'],
+      ['play Cursum Perficio on analog tape', 'block'],
+      ['GTA 6 gameplay still, warm grain', 'block'],
+      ['GTA6 gameplay still, warm grain', 'block'],
+      ['GTAVI gameplay still, warm grain', 'block'],
+      ['Leonida nights, warm grain', 'block'],
+      ['Pocketpair creature render, warm grain', 'block'],
+    ];
+    for (const [prompt, verdict] of cases) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
+    }
+  });
+
+  it('scopes the weekly-ahead 2026-10-03 Pocketpair token to image/video', () => {
+    const music = createCensor({ replaceCatalog: true, media: 'music' });
+    const image = createCensor({ replaceCatalog: true, media: 'image' });
+    const prompt = 'Pocketpair creature render, warm grain';
+    assert.equal(music.check(prompt).verdict, 'allow', `music-path ${JSON.stringify(prompt)}`);
+    assert.equal(image.check(prompt).verdict, 'block', `image-path ${JSON.stringify(prompt)}`);
+  });
+
+  it('matches weekly-ahead 2026-10-05 identifiers from invented prompts only', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const cases = [
+      ['Yebba hook over warm pads', 'review'],
+      ['play HABIBTI on analog tape', 'block'],
+      ['play Habibti (FOMO) on analog tape', 'block'],
+      ['play Quebec on analog tape', 'block'],
+      ['play Cleveland on analog tape', 'block'],
+      ['play Cleveland! on analog tape', 'block'],
+      ['play Pink Clouding on analog tape', 'block'],
+      ['play The Life of a Showgirl on analog tape', 'block'],
+      ['play Life of a Showgirl on analog tape', 'block'],
+      ['play 15 Besos on analog tape', 'block'],
+      ['play Quince Besos on analog tape', 'block'],
+      ['Cornelio Vega y su Dinastía hook over warm pads', 'review'],
+      ['Cornelio Vega y su Dinastia hook over warm pads', 'review'],
+      ['Gerencia 360 logo lockup, warm grain', 'block'],
+      ["Cluckin' Bell storefront, warm grain", 'block'],
+      ['Cluckin Bell storefront, warm grain', 'block'],
+    ];
+    for (const [prompt, verdict] of cases) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
+    }
+  });
+
+  it("scopes the weekly-ahead 2026-10-05 Cluckin' Bell token to image/video", () => {
+    const music = createCensor({ replaceCatalog: true, media: 'music' });
+    const image = createCensor({ replaceCatalog: true, media: 'image' });
+    const prompt = "Cluckin' Bell storefront, warm grain";
+    assert.equal(music.check(prompt).verdict, 'allow', `music-path ${JSON.stringify(prompt)}`);
+    assert.equal(image.check(prompt).verdict, 'block', `image-path ${JSON.stringify(prompt)}`);
+  });
+
+  it('requires co-occurrence before a gated phrase can fire', () => {
+    const censor = createCensor({
+      replaceBlocklist: true,
+      blocklist: {
+        artists: ['Zorblin Faye'],
+        works: [{ term: 'Lantern Glass', requires: ['Zorblin Faye'] }],
+      },
+    });
+    assert.equal(censor.check('Lantern Glass piano sketch').verdict, 'allow');
+    assert.equal(censor.check('the song lantern glass on analog tape').verdict, 'allow');
+    assert.equal(censor.check('Zorblin Faye lantern glass piano sketch').verdict, 'block');
+  });
+
+  it('matches weekly-ahead 2026-10-12 identifiers from invented prompts only', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const cases = [
+      ['Bill Withers vocal air over pads', 'review'],
+      ['bill withers vocal air over pads', 'review'],
+      ['Kenjiro Tsuda vocal air over pads', 'review'],
+      ['dolly babe hook over warm pads', 'review'],
+      ['play Just the Two of Us on analog tape', 'block'],
+      ['play The Art of Loving on analog tape', 'block'],
+      ['play Art of Loving on analog tape', 'block'],
+      ['the song just the two of us on analog tape', 'block'],
+      ['play Pink Blush on analog tape', 'block'],
+      ['the song pink blush on analog tape', 'block'],
+      ['play Last Thing You Need on analog tape', 'block'],
+      ['the song last thing you need on analog tape', 'block'],
+      ['Olivia Dean I\'ve Seen It piano sketch', 'block'],
+      ['olivia dean ive seen it piano sketch', 'block'],
+      ['Stella Lefty Something to Lose piano sketch', 'block'],
+      ['Vincent Mason something to lose, quiet room', 'block'],
+      ['something to lose, Stella Lefty vocal', 'block'],
+      ['Sienna Spiro Pure sketch on analog tape', 'block'],
+      ['sienna spiro pure sketch on analog tape', 'block'],
+      ['Olivia Rodrigo Expectations sketch', 'block'],
+      ['olivia rodrigo expectations sketch', 'block'],
+      ['Tung Tung Tung Sahur character render, warm grain', 'block'],
+      ['Tung Tung Sahur mascot, warm grain', 'block'],
+      ['brainrot Triple T mascot, warm grain', 'block'],
+      ['Tung Tung Sahur Triple T still, warm grain', 'block'],
+      ['Italian Brainrot Triple T title sting, warm grain', 'block'],
+      ['AI cover of Kenjiro Tsuda, warm pads', 'block'],
+      ['Kenjiro Tsuda AI cover, warm pads', 'block'],
+      ['in the voice of Kenjiro Tsuda, warm pads', 'review'],
+      ['Bill Withers AI cover, warm pads', 'block'],
+    ];
+    for (const [prompt, verdict] of cases) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, verdict, `${JSON.stringify(prompt)} => ${result.verdict} (expected ${verdict})`);
+    }
+  });
+
+  it('keeps weekly-ahead 2026-10-12 generic titles allow without their co-occurring name', () => {
+    const censor = createCensor({ replaceCatalog: true });
+    const prompts = [
+      'I\'ve Seen It piano sketch',
+      'the song I\'ve Seen It on analog tape',
+      'Something to Lose piano sketch',
+      'the song something to lose on analog tape',
+      'play Pure on analog tape',
+      'the song Pure on analog tape',
+      'play Expectations on analog tape',
+      'the song Expectations on analog tape',
+      'Triple T character render, warm grain',
+      'triple t time signature, quiet click',
+      'just the two of us in the booth, quiet mics',
+      'pink blush lighting, soft glow',
+      'the last thing you need is more reverb',
+      'an AI cover, warm pads',
+      'draft an AI cover letter, quiet desk',
+      'dolly in slowly, then part the curtains',
+    ];
+    for (const prompt of prompts) {
+      const result = censor.check(prompt);
+      assert.equal(result.verdict, 'allow', `${JSON.stringify(prompt)} => ${result.verdict} (${result.reasons.join('; ')})`);
+    }
+  });
+
+  it('scopes the weekly-ahead 2026-10-12 Art of Loving token to music', () => {
+    const music = createCensor({ replaceCatalog: true, media: 'music' });
+    const image = createCensor({ replaceCatalog: true, media: 'image' });
+    const video = createCensor({ replaceCatalog: true, media: 'video' });
+    const prompts = [
+      'play The Art of Loving on analog tape',
+      'play Art of Loving on analog tape',
+      'the art of loving a quiet mix',
+    ];
+    for (const prompt of prompts) {
+      assert.equal(music.check(prompt).verdict, 'block', `music-path ${JSON.stringify(prompt)}`);
+      assert.equal(image.check(prompt).verdict, 'allow', `image-path ${JSON.stringify(prompt)}`);
+      assert.equal(video.check(prompt).verdict, 'allow', `video-path ${JSON.stringify(prompt)}`);
+    }
+  });
+});
